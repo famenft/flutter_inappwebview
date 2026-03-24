@@ -49,16 +49,16 @@ class InAppWebViewFlutterPlugin {
             ((JSString method, JSAny viewId, [JSArray? args]) {
               return _dartNativeAsyncCommunication(
                 method.toDart,
-                viewId,
-                args?.toDart,
+                (viewId as JSNumber).toDartInt,
+                _convertJSArgs(args),
               ).then((value) => value?.toJS).toJS;
             }).toJS;
         flutterInAppWebView!.nativeSyncCommunication =
             ((JSString method, JSAny viewId, [JSArray? args]) =>
                     _dartNativeSyncCommunication(
                       method.toDart,
-                      viewId,
-                      args?.toDart,
+                      (viewId as JSNumber).toDartInt,
+                      _convertJSArgs(args),
                     )?.toJS)
                 .toJS;
         Object_freeze(flutterInAppWebView!);
@@ -69,6 +69,21 @@ class InAppWebViewFlutterPlugin {
       }
     }
   }
+}
+
+List? _convertJSArgs(JSArray? jsArgs) {
+  if (jsArgs == null) return null;
+  return jsArgs.toDart.map((e) {
+    if (e == null) return null;
+    final jsVal = e as JSAny;
+    if (jsVal.isA<JSString>()) return (jsVal as JSString).toDart;
+    if (jsVal.isA<JSNumber>()) {
+      final d = (jsVal as JSNumber).toDartDouble;
+      return d == d.roundToDouble() ? d.toInt() : d;
+    }
+    if (jsVal.isA<JSBoolean>()) return (jsVal as JSBoolean).toDart;
+    return jsVal.dartify();
+  }).toList();
 }
 
 Future<String?> _dartNativeAsyncCommunication(
