@@ -151,8 +151,9 @@ String? _dartNativeSyncCommunication(
           webViewHtmlElement.onUpdateVisitedHistory(url);
           break;
         case 'onScrollChanged':
-          int x = (args![0] as double).toInt();
-          int y = (args[1] as double).toInt();
+          // _convertJSArgs yields int for whole JS numbers, double otherwise
+          int x = (args![0] as num).toInt();
+          int y = (args[1] as num).toInt();
           webViewHtmlElement.onScrollChanged(x, y);
           break;
         case 'onConsoleMessage':
